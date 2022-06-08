@@ -189,6 +189,8 @@ class CcvOnlinePaymentsApi {
             "billingState"              => $request->getBillingState(),
             "billingPostalCode"         => $request->getBillingPostalCode(),
             "billingCountry"            => $request->getBillingCountry(),
+            # Missing billingEmail
+            "billingEmail"              => $request->getAccountInfoEmail(),
             "billingHouseNumber"        => $request->getBillingHouseNumber(),
             "billingHouseExtension"     => $request->getBillingHouseExtension(),
             "billingPhoneNumber"        => $request->getBillingPhoneNumber(),
@@ -236,7 +238,16 @@ class CcvOnlinePaymentsApi {
 
         $paymentResponse = new PaymentResponse();
         $paymentResponse->setReference($apiResponse->reference);
-        $paymentResponse->setPayUrl($apiResponse->payUrl);
+        # Start modification
+        if($apiResponse->method == 'banktransfer'){
+          #payUrl does not exist for banktransfer
+          $paymentResponse->setPayUrl($apiResponse->returnUrl);
+        }
+        else {
+          #Original code below:
+          $paymentResponse->setPayUrl($apiResponse->payUrl);
+        }
+        # End modification
         return $paymentResponse;
     }
 
