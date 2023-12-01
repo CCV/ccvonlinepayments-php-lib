@@ -126,7 +126,7 @@ class CcvOnlinePaymentsApi {
         return $methods;
     }
 
-    public static function getSortedMethodIds($countryCode = null) {
+    public static function getSortedMethodIds( $countryCode = null) {
         $methodIds = [
             "ideal",
             "card_bcmc",
@@ -141,7 +141,7 @@ class CcvOnlinePaymentsApi {
             "banktransfer"
         ];
 
-        if(strtoupper($countryCode) === "BE") {
+        if(strtoupper($countryCode ?? "") === "BE") {
             $methodIds[0] = "card_bcmc";
             $methodIds[1] = "ideal";
         }
