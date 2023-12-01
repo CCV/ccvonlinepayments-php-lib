@@ -126,7 +126,7 @@ class CcvOnlinePaymentsApi {
         return $methods;
     }
 
-    public static function getSortedMethodIds( $countryCode = null) {
+    public static function getSortedMethodIds($countryCode = null) {
         $methodIds = [
             "ideal",
             "card_bcmc",
