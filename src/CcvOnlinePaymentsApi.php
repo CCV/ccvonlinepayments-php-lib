@@ -149,7 +149,7 @@ class CcvOnlinePaymentsApi {
             "banktransfer"
         ];
 
-        if(strtoupper($countryCode) === "BE") {
+        if(strtoupper($countryCode ?? "") === "BE") {
             $methodIds[0] = "card_bcmc";
             $methodIds[1] = "ideal";
         }
