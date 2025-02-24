@@ -535,7 +535,7 @@ class PaymentRequest {
 
     private function getPhoneNumber($phoneNumber, $countryCode) {
         try {
-            $number = PhoneNumber::parse($phoneNumber, $countryCode);
+            $number = PhoneNumber::parse($phoneNumber??"", $countryCode);
             return $number->getNationalNumber();
         }catch(PhoneNumberParseException $phoneNumberParseException) {
             return null;
@@ -544,7 +544,7 @@ class PaymentRequest {
 
     private function getPhoneCountryNumber($phoneNumber, $countryCode) {
         try {
-            $number = PhoneNumber::parse($phoneNumber, $countryCode);
+            $number = PhoneNumber::parse($phoneNumber??"", $countryCode);
             return $number->getCountryCode();
         }catch(PhoneNumberParseException $phoneNumberParseException) {
             return null;
