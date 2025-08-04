@@ -1,54 +1,62 @@
 <?php
+
 namespace CCVOnlinePayments\Lib;
 
+class CaptureRequest
+{
 
-class CaptureRequest {
+    private ?string $reference = null;
+    private ?float $amount = null;
+    private ?string $idempotencyReference = null;
 
-    private $reference;
-    private $amount;
-    private $idempotencyReference;
+    /**
+     * @var ?array<OrderLine>
+     */
+    private ?array $orderLines = null;
 
-    private $orderLines = [];
-
-    public function getReference()
+    public function getReference(): ?string
     {
         return $this->reference;
     }
 
-    public function setReference($reference)
+    public function setReference(?string $reference): void
     {
         $this->reference = $reference;
     }
 
-    public function getAmount()
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    public function setAmount($amount)
+    public function setAmount(null|string|int|float $amount): void
     {
-        $this->amount = $amount;
+        $this->amount = Util::toFloat($amount);
     }
 
-    public function getIdempotencyReference()
+    public function getIdempotencyReference(): ?string
     {
         return $this->idempotencyReference;
     }
 
-    public function setIdempotencyReference($idempotencyReference): void
+    public function setIdempotencyReference(?string $idempotencyReference): void
     {
         $this->idempotencyReference = $idempotencyReference;
     }
 
-    public function getOrderLines(): array
+    /**
+     * @return ?array<OrderLine>
+     */
+    public function getOrderLines(): ?array
     {
         return $this->orderLines;
     }
 
+    /**
+     * @param array<OrderLine> $orderLines
+     */
     public function setOrderLines(array $orderLines): void
     {
         $this->orderLines = $orderLines;
     }
-
-
 }

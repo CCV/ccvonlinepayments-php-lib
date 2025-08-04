@@ -3,33 +3,32 @@ namespace CCVOnlinePayments\Lib;
 
 class Issuer {
 
-    private $id;
-    private $description;
-
-    private $groupType;
-    private $groupValue;
-
-    public function __construct($id, $description = null, $groupType = null, $groupValue = null)
+    public function __construct(
+        private string $id,
+        private ?string $description = null,
+        private ?string $groupType = null,
+        private ?string $groupValue = null)
     {
-        $this->id           = $id;
-        $this->description  = $description;
-        $this->groupType    = $groupType;
-        $this->groupValue   = $groupValue;
+
     }
 
-    public function getId() {
+    public function getId(): string
+    {
         return $this->id;
     }
 
-    public function getDescription() {
+    public function getDescription(): ?string
+    {
         return $this->description;
     }
 
-    public function getGroupType() {
+    public function getGroupType(): ?string
+    {
         return $this->groupType;
     }
 
-    public function getGroupValue() {
+    public function getGroupValue(): ?string
+    {
         return $this->groupValue;
     }
 

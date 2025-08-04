@@ -1,75 +1,64 @@
 <?php
 namespace CCVOnlinePayments\Lib;
 
+use CCVOnlinePayments\Lib\Enum\PaymentFailureCode;
+use CCVOnlinePayments\Lib\Enum\TransactionType;
+
 class PaymentStatus {
+    private ?float $amount;
+    private ?\CCVOnlinePayments\Lib\Enum\PaymentStatus $status;
+    private ?PaymentFailureCode $failureCode;
 
-    const STATUS_PENDING                        = 'pending';
-    const STATUS_FAILED                         = 'failed';
-    const STATUS_MANUAL_INTERVENTION            = 'manualintervention';
-    const STATUS_SUCCESS                        = 'success';
+    private ?TransactionType $transactionType;
 
-    const FAILURE_CODE_EXPIRED                  = "expired";
-    const FAILURE_CODE_CANCELLED                = "cancelled";
-    const FAILURE_CODE_UNSUFFICIENT_BALANCE     = "unsufficient_balance";
-    const FAILURE_CODE_FRAUD_DETECTED           = "fraud_detected";
-    const FAILURE_CODE_REJECTED                 = "rejected";
-    const FAILURE_CODE_CARD_REFUSED             = "card_refused";
-    const FAILURE_CODE_INSUFFICIENT_FUNDS       = "insufficient_funds";
+    private ?object $details = null;
 
-    private $amount;
-    private $status;
-    private $failureCode;
-
-    private $transactionType;
-
-    private $details;
-
-    public function getAmount()
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    public function setAmount($amount)
+    public function setAmount(null|string|int|float $amount): void
     {
-        $this->amount = $amount;
+        $this->amount = Util::toFloat($amount);
     }
 
-    public function getStatus()
+    public function getStatus(): ?\CCVOnlinePayments\Lib\Enum\PaymentStatus
     {
         return $this->status;
     }
 
-    public function setStatus($status)
+    public function setStatus(?\CCVOnlinePayments\Lib\Enum\PaymentStatus $status): void
     {
         $this->status = $status;
     }
 
-    public function getFailureCode()
+    public function getFailureCode(): ?PaymentFailureCode
     {
         return $this->failureCode;
     }
 
-    public function setFailureCode($failureCode)
+    public function setFailureCode(?PaymentFailureCode $failureCode): void
     {
         $this->failureCode = $failureCode;
     }
 
-    public function getTransactionType()
+    public function getTransactionType(): ?TransactionType
     {
         return $this->transactionType;
     }
 
-    public function setTransactionType($transactionType): void
+    public function setTransactionType(?TransactionType $transactionType): void
     {
         $this->transactionType = $transactionType;
     }
 
-    public function getDetails() : ?object
+    public function getDetails(): ?object
     {
         return $this->details;
     }
 
-    public function setDetails(object $details): void
+    public function setDetails(?object $details): void
     {
         $this->details = $details;
     }

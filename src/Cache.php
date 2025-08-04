@@ -6,7 +6,7 @@ abstract class Cache {
     public abstract function set(string $key, string $value, int $timeout) : void;
     public abstract function get(string $key) : ?string;
 
-    public function getWithFallback(string $key, int $timeout, callable $function) {
+    public function getWithFallback(string $key, int $timeout, callable $function) : mixed {
         $stringValue = $this->get($key);
         if($stringValue === null) {
             $value = $function();

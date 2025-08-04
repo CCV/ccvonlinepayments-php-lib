@@ -1,28 +1,29 @@
 <?php
+
 namespace CCVOnlinePayments\Lib;
 
-class Method {
+class Method
+{
 
-    private $id;
-
-    private $issuerKey;
-    private $issuers;
-
-    private $refundSupported;
-
-    public function __construct($id, $issuerKey = null, $issuers = null, bool $refundSupported = false)
+    /**
+     * @param array<Issuer>|null $issuers
+     */
+    public function __construct(
+        private readonly string  $id,
+        private readonly ?string $issuerKey = null,
+        private readonly ?array  $issuers = null,
+        private readonly bool    $refundSupported = false)
     {
-        $this->id                        = $id;
-        $this->issuerKey                 = $issuerKey;
-        $this->issuers                   = $issuers;
-        $this->refundSupported           = $refundSupported;
+
     }
 
-    public function getId() {
+    public function getId(): string
+    {
         return $this->id;
     }
 
-    public function getName() {
+    public function getName(): string
+    {
         return $this->id;
     }
 
@@ -31,36 +32,39 @@ class Method {
         return $this->refundSupported;
     }
 
-    public function isTransactionTypeSaleSupported() {
+    public function isTransactionTypeSaleSupported(): bool
+    {
         return $this->id !== "klarna";
     }
 
-    public function isTransactionTypeAuthoriseSupported() {
+    public function isTransactionTypeAuthoriseSupported(): bool
+    {
         return $this->id === "klarna";
     }
 
-    public function isOrderLinesRequired() {
+    public function isOrderLinesRequired(): bool
+    {
         return $this->id === "klarna";
     }
 
-    /**
-     * @return string
-     */
-    public function getIssuerKey() {
+    public function getIssuerKey(): ?string
+    {
         return $this->issuerKey;
     }
 
     /**
      * @return Issuer[]
      */
-    public function getIssuers() {
+    public function getIssuers(): ?array
+    {
         return $this->issuers;
     }
 
-    public function isCurrencySupported($currency) {
+    public function isCurrencySupported(string $currency): bool
+    {
         $currency = strtoupper($currency);
 
-        return in_array($currency,["EUR", "CHF", "GBP"]);
+        return in_array($currency, ["EUR", "CHF", "GBP"]);
     }
 
 }

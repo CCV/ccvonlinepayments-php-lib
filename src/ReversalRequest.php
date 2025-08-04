@@ -4,26 +4,26 @@ namespace CCVOnlinePayments\Lib;
 
 class ReversalRequest {
 
-    private $reference;
+    private ?string $reference = null;
 
-    private $idempotencyReference;
+    private ?string $idempotencyReference = null;
 
-    public function getReference()
+    public function getReference(): ?string
     {
         return $this->reference;
     }
 
-    public function setReference($reference)
+    public function setReference(?string $reference): void
     {
         $this->reference = $reference;
     }
 
-    public function getIdempotencyReference()
+    public function getIdempotencyReference(): ?string
     {
         return $this->idempotencyReference;
     }
 
-    public function setIdempotencyReference($idempotencyReference): void
+    public function setIdempotencyReference(?string $idempotencyReference): void
     {
         $this->idempotencyReference = $idempotencyReference;
     }

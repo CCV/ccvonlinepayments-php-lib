@@ -1,62 +1,70 @@
 <?php
 namespace CCVOnlinePayments\Lib;
 
-
 class RefundRequest {
 
-    private $reference;
-    private $amount;
-    private $description;
-    private $idempotencyReference;
+    private ?string $reference = null;
+    private ?float $amount = null;
+    private ?string $description = null;
+    private ?string $idempotencyReference = null;
 
-    private $orderLines = [];
+    /**
+     * @var array<OrderLine>
+     */
+    private ?array $orderLines = null;
 
-    public function getReference()
+    public function getReference(): ?string
     {
         return $this->reference;
     }
 
-    public function setReference($reference)
+    public function setReference(?string $reference): void
     {
         $this->reference = $reference;
     }
 
-    public function getAmount()
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    public function setAmount($amount)
+    public function setAmount(null|string|int|float $amount): void
     {
-        $this->amount = $amount;
+        $this->amount = Util::toFloat($amount);
     }
 
-    public function getDescription()
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function setDescription($description): void
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
     }
 
-    public function getIdempotencyReference()
+    public function getIdempotencyReference(): ?string
     {
         return $this->idempotencyReference;
     }
 
-    public function setIdempotencyReference($idempotencyReference): void
+    public function setIdempotencyReference(?string $idempotencyReference): void
     {
         $this->idempotencyReference = $idempotencyReference;
     }
 
-    public function getOrderLines(): array
+    /**
+     * @return OrderLine[]|null
+     */
+    public function getOrderLines(): ?array
     {
         return $this->orderLines;
     }
 
-    public function setOrderLines(array $orderLines): void
+    /**
+     * @param array<OrderLine>|null $orderLines
+     */
+    public function setOrderLines(?array $orderLines): void
     {
         $this->orderLines = $orderLines;
     }

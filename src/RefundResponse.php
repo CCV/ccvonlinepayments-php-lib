@@ -4,14 +4,14 @@ namespace CCVOnlinePayments\Lib;
 
 class RefundResponse {
 
-    private $reference;
+    private ?string $reference = null;
 
-    public function getReference()
+    public function getReference() : ?string
     {
         return $this->reference;
     }
 
-    public function setReference($reference)
+    public function setReference(?string $reference) : void
     {
         $this->reference = $reference;
     }

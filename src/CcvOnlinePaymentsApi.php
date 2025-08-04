@@ -1,6 +1,8 @@
 <?php
 namespace CCVOnlinePayments\Lib;
 
+use CCVOnlinePayments\Lib\Enum\PaymentFailureCode;
+use CCVOnlinePayments\Lib\Enum\TransactionType;
 use CCVOnlinePayments\Lib\Exception\ApiException;
 use CCVOnlinePayments\Lib\Exception\InvalidApiKeyException;
 use Curl\Curl;
@@ -10,32 +12,44 @@ class CcvOnlinePaymentsApi {
 
     const API_ROOT = "https://api.psp.ccv.eu/";
 
-    private $apiRoot;
+    private string $apiRoot;
 
-    private $cache;
-    private $logger;
-    private $apiKey;
-    private $metadata;
+    /**
+     * @var null|array<string,string>
+     */
+    private ?array $metadata = null;
 
-    private $methods = null;
+    /**
+     * @var array<Method>|null
+     */
+    private ?array $methods = null;
 
-    public function __construct(Cache $cache, LoggerInterface $logger, ?string $apiKey)
+    public function __construct(
+        private readonly Cache $cache,
+        private readonly LoggerInterface $logger,
+        private readonly ?string $apiKey)
     {
-        $this->cache    = $cache;
-        $this->logger   = $logger;
-        $this->apiKey   = $apiKey;
         $this->apiRoot  = self::API_ROOT;
     }
 
-    public function setApiRoot(string $apiRoot) {
+    public function setApiRoot(string $apiRoot): void
+    {
         $this->apiRoot = $apiRoot;
     }
 
-    public function setMetadata($metadata) {
+    /**
+     * @param array<string,string> $metadata
+     */
+    public function setMetadata(array $metadata): void
+    {
         $this->metadata = $metadata;
     }
 
-    public function addMetadata($metadata) {
+    /**
+     * @param array<string,string> $metadata
+     */
+    public function addMetadata(array $metadata): void
+    {
         if(is_array($this->metadata)) {
             $this->metadata = array_merge($this->metadata, $metadata);
         }else{
@@ -43,7 +57,8 @@ class CcvOnlinePaymentsApi {
         }
     }
 
-    public function getMetadataString() {
+    public function getMetadataString(): string
+    {
         if(is_array($this->metadata)) {
             $metadata = $this->metadata;
             $metadata["PHP"] = phpversion();
@@ -64,17 +79,19 @@ class CcvOnlinePaymentsApi {
     /**
      * @return Method[]
      */
-    public function getMethods() {
+    public function getMethods(): array
+    {
         if($this->methods === null) {
-            $this->methods = $this->cache->getWithFallback("CCVONLINEPAYMENTS_METHODS_" . sha1($this->apiKey), 3600, function () {
+            $this->methods = $this->cache->getWithFallback("CCVONLINEPAYMENTS_METHODS_" . sha1($this->apiKey??""), 3600, function () {
                 return $this->_getMethods();
             });
         }
 
-        return $this->methods;
+        return (array)$this->methods;
     }
 
-    public function getMethodById($methodId) {
+    public function getMethodById(string $methodId): ?Method
+    {
         foreach($this->getMethods() as $method) {
             if($method->getId() === $methodId) {
                 return $method;
@@ -84,7 +101,11 @@ class CcvOnlinePaymentsApi {
         return null;
     }
 
-    private function _getMethods() {
+    /**
+     * @return Method[]
+     */
+    private function _getMethods(): array
+    {
         $apiResponse = $this->apiGet("api/v1/method", []);
 
         $methods = [];
@@ -97,17 +118,17 @@ class CcvOnlinePaymentsApi {
                 $issuerKey = "brand";
                 $issuers = $this->parseIssuers($responseMethod, $issuerKey, $issuerKey, null, null);
 
-                /** @var Issuer $issuer */
-                foreach($issuers as $issuer) {
-                    $methods[] = new Method("card_".$issuer->getId(), null, null, true);
+                if($issuers === null) {
+                    $methods[] = new Method($methodId, $issuerKey, $issuers, true);
+                }else{
+                    foreach($issuers as $issuer) {
+                        $methods[] = new Method("card_".$issuer->getId(), null, null, true);
+                    }
                 }
             }else {
                 if($methodId === "ideal") {
                     $issuerKey = "issuerid";
                     $issuers = $this->parseIssuers($responseMethod, $issuerKey, "issuerdescription", "grouptype", "group");
-                }elseif($methodId === "ideal") {
-                    $issuerKey = "issuerid";
-                    $issuers = $this->parseIssuers($responseMethod, $issuerKey, "issuerdescription",null, null);
                 }
 
                 $methods[] = new Method($methodId, $issuerKey, $issuers, !in_array($methodId, ['landingpage','terminal', 'token', 'vault']));
@@ -117,7 +138,12 @@ class CcvOnlinePaymentsApi {
         return $methods;
     }
 
-    public function sortMethods($methods, $countryCode = null) {
+    /**
+     * @param array<Method> $methods
+     * @return array<Method>
+     */
+    public function sortMethods(array $methods, ?string $countryCode = null): array
+    {
         $methodOrder = array_flip(self::getSortedMethodIds($countryCode));
 
         usort($methods, function($a, $b) use($methodOrder){
@@ -134,7 +160,11 @@ class CcvOnlinePaymentsApi {
         return $methods;
     }
 
-    public static function getSortedMethodIds($countryCode = null) {
+    /**
+     * @return string[]
+     */
+    public static function getSortedMethodIds(?string $countryCode = null): array
+    {
         $methodIds = [
             "ideal",
             "card_bcmc",
@@ -151,7 +181,7 @@ class CcvOnlinePaymentsApi {
             "googlepay"
         ];
 
-        if(strtoupper($countryCode) === "BE") {
+        if(strtoupper($countryCode??"") === "BE") {
             $methodIds[0] = "card_bcmc";
             $methodIds[1] = "ideal";
         }
@@ -159,7 +189,8 @@ class CcvOnlinePaymentsApi {
         return $methodIds;
     }
 
-    public function isKeyValid() {
+    public function isKeyValid(): bool
+    {
         try {
             $this->getMethods();
         }catch(InvalidApiKeyException $invalidApiKeyException) {
@@ -169,12 +200,9 @@ class CcvOnlinePaymentsApi {
         return true;
     }
 
-    /**
-     * @param PaymentRequest $request
-     * @return PaymentResponse
-     */
-    public function createPayment($request) {
-        if(strpos($request->getMethod(),"card_") === 0) {
+    public function createPayment(PaymentRequest $request): PaymentResponse
+    {
+        if(str_starts_with($request->getMethod()??"", "card_")) {
             list($method, $brand) = explode("_", $request->getMethod());
         }else{
             $method = $request->getMethod();
@@ -182,7 +210,7 @@ class CcvOnlinePaymentsApi {
         }
 
         $requestData = [
-            "amount"                    => number_format($request->getAmount(),2,".",""),
+            "amount"                    => Util::floatToString($request->getAmount()),
             "currency"                  => $request->getCurrency(),
             "returnUrl"                 => $request->getReturnUrl(),
             "method"                    => $method,
@@ -216,7 +244,7 @@ class CcvOnlinePaymentsApi {
             "shippingEmail"             => $request->getShippingEmail(),
             "shippingFirstName"         => $request->getShippingFirstName(),
             "shippingLastName"          => $request->getShippingLastName(),
-            "transactionType"           => $request->getTransactionType(),
+            "transactionType"           => $request->getTransactionType()->value,
             "accountInfo" => [
                 "accountIdentifier"     =>  $request->getAccountInfoAccountIdentifier(),
                 "accountCreationDate"   =>  $request->getAccountInfoAccountCreationDate(),
@@ -261,7 +289,11 @@ class CcvOnlinePaymentsApi {
         return $paymentResponse;
     }
 
-    private function getDataByOrderLine(OrderLine $orderLine) {
+    /**
+     * @return array<string, mixed>
+     */
+    private function getDataByOrderLine(OrderLine $orderLine): array
+    {
         return [
             "type"          => $orderLine->getType(),
             "name"          => $orderLine->getName(),
@@ -283,7 +315,8 @@ class CcvOnlinePaymentsApi {
      * @param RefundRequest $request
      * @return RefundResponse
      */
-    public function createRefund(RefundRequest $request) {
+    public function createRefund(RefundRequest $request): RefundResponse
+    {
         $requestData = [
             "reference" => $request->getReference()
         ];
@@ -293,7 +326,7 @@ class CcvOnlinePaymentsApi {
         }
 
         if($request->getAmount() !== null) {
-            $requestData["amount"] = number_format($request->getAmount(),2,".","");
+            $requestData["amount"] = Util::floatToString($request->getAmount());
         }
 
         if($request->getOrderLines() !== null) {
@@ -312,17 +345,14 @@ class CcvOnlinePaymentsApi {
         return $refundResponse;
     }
 
-    /**
-     * @param CaptureRequest $request
-     * @return CaptureResponse
-     */
-    public function createCapture(CaptureRequest $request) {
+    public function createCapture(CaptureRequest $request): CaptureResponse
+    {
         $requestData = [
             "reference" => $request->getReference()
         ];
 
         if($request->getAmount() !== null) {
-            $requestData["amount"] = number_format($request->getAmount(),2,".","");
+            $requestData["amount"] = Util::floatToString($request->getAmount());
         }
 
         if($request->getOrderLines() !== null) {
@@ -341,11 +371,8 @@ class CcvOnlinePaymentsApi {
         return $captureResponse;
     }
 
-    /**
-     * @param ReversalRequest $request
-     * @return ReversalResponse
-     */
-    public function createReversal(ReversalRequest $request) {
+    public function createReversal(ReversalRequest $request): ReversalResponse
+    {
         $requestData = [
             "reference" => $request->getReference()
         ];
@@ -359,7 +386,10 @@ class CcvOnlinePaymentsApi {
         return $reversalResponse;
     }
 
-    private function removeNullAndFormat(&$array) {
+    /**
+     * @param array<mixed> $array
+     */
+    private function removeNullAndFormat(array &$array) : void {
         foreach($array as $key => &$value) {
             if($value === null) {
                 unset($array[$key]);
@@ -374,20 +404,25 @@ class CcvOnlinePaymentsApi {
         }
     }
 
-    public function getPaymentStatus($paymentReference) {
+    public function getPaymentStatus(string $paymentReference): PaymentStatus
+    {
         $apiResponse = $this->apiGet("api/v1/transaction", ["reference" => $paymentReference]);
 
         $paymentStatus = new PaymentStatus();
         $paymentStatus->setAmount($apiResponse->amount);
-        $paymentStatus->setStatus($apiResponse->status);
-        $paymentStatus->setFailureCode($apiResponse->failureCode ?? null);
-        $paymentStatus->setTransactionType($apiResponse->type);
-        $paymentStatus->setDetails($apiResponse->details??(new \stdClass()));
+        $paymentStatus->setStatus(\CCVOnlinePayments\Lib\Enum\PaymentStatus::from($apiResponse->status));
+        $paymentStatus->setFailureCode(isset($apiResponse->failureCode) ? PaymentFailureCode::from($apiResponse->failureCode) : null);
+        $paymentStatus->setTransactionType(TransactionType::from($apiResponse->type));
+        $paymentStatus->setDetails($apiResponse->details?? new \stdClass());
 
         return $paymentStatus;
     }
 
-    private function parseIssuers($method, $issuerKey, $descriptionKey, $groupTypeKey, $groupValueKey) {
+    /**
+     * @return array<Issuer>|null
+     */
+    private function parseIssuers(object $method, string $issuerKey, string $descriptionKey, ?string $groupTypeKey, ?string $groupValueKey): ?array
+    {
         if(isset($method->options)) {
             $issuers = [];
 
@@ -406,15 +441,27 @@ class CcvOnlinePaymentsApi {
         return null;
     }
 
-    private function apiGet(string $endpoint, array $parameters, ?string $idempotencyReference = null) {
+    /**
+     * @param array<mixed> $parameters
+     */
+    private function apiGet(string $endpoint, array $parameters, ?string $idempotencyReference = null): mixed
+    {
         return $this->apiCall("get", $endpoint, $parameters, $idempotencyReference);
     }
 
-    private function apiPost(string $endpoint, array $parameters, ?string $idempotencyReference = null) {
+    /**
+     * @param array<mixed> $parameters
+     */
+    private function apiPost(string $endpoint, array $parameters, ?string $idempotencyReference = null): mixed
+    {
         return $this->apiCall("post", $endpoint, $parameters, $idempotencyReference);
     }
 
-    private function apiCall(string $method, string $endpoint, array $originalParameters, ?string $idempotencyReference = null, int $attempt = 0) {
+    /**
+     * @param array<mixed> $originalParameters
+     */
+    private function apiCall(string $method, string $endpoint, array $originalParameters, ?string $idempotencyReference = null, int $attempt = 0): mixed
+    {
         $curl = new Curl();
         $curl->setBasicAuthentication($this->apiKey);
         $curl->setOpt(CURLINFO_HEADER_OUT, true);

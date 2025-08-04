@@ -1,160 +1,151 @@
-<?php
-namespace CCVOnlinePayments\Lib;
+<?php namespace CCVOnlinePayments\Lib;
 
-class OrderLine {
+use CCVOnlinePayments\Lib\Enum\OrderLineType;
 
-    public const TYPE_PHYSICAL      = "PHYSICAL";
-    public const TYPE_DISCOUNT      = "DISCOUNT";
-    public const TYPE_DIGITAL       = "DIGITAL";
-    public const TYPE_SHIPPING_FEE  = "SHIPPING_FEE";
-    public const TYPE_STORE_CREDIT  = "STORE_CREDIT";
-    public const TYPE_GIFT_CARD     = "GIFT_CARD";
-    public const TYPE_SURCHARGE     = "SURCHARGE";
-    public const TYPE_SALES_TAX     = "SALES_TAX";
-    public const TYPE_DEPOSIT       = "DEPOSIT";
+class OrderLine
+{
 
-    private $type;
-    private $name;
-    private $code;
-    private $quantity;
-    private $unit;
-    private $unitPrice;
-    private $totalPrice;
-    private $discount;
-    private $vatRate;
-    private $vat;
-    private $url;
-    private $imageUrl;
-    private $brand;
+    private ?OrderLineType $type = null;
+    private ?string $name = null;
+    private ?string $code = null;
+    private ?int $quantity = null;
+    private ?string $unit = null;
+    private ?float $unitPrice = null;
+    private ?float $totalPrice = null;
+    private ?float $discount = null;
+    private ?float $vatRate = null;
+    private ?float $vat = null;
+    private ?string $url = null;
+    private ?string $imageUrl = null;
+    private ?string $brand = null;
 
-    public function getType()
+    public function getType(): ?OrderLineType
     {
         return $this->type;
     }
 
-    public function setType($type): void
+    public function setType(?OrderLineType $type): void
     {
         $this->type = $type;
     }
 
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName($name): void
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
-    public function getCode()
+    public function getCode(): ?string
     {
         return $this->code;
     }
 
-    public function setCode($code): void
+    public function setCode(?string $code): void
     {
         $this->code = $code;
     }
 
-    public function getQuantity()
+    public function getQuantity(): ?int
     {
         return $this->quantity;
     }
 
-    public function setQuantity($quantity): void
+    public function setQuantity(?int $quantity): void
     {
         $this->quantity = $quantity;
     }
 
-    public function getUnit()
+    public function getUnit(): ?string
     {
         return $this->unit;
     }
 
-    public function setUnit($unit): void
+    public function setUnit(?string $unit): void
     {
         $this->unit = $unit;
     }
 
-    public function getUnitPrice()
+    public function getUnitPrice(): ?float
     {
         return $this->unitPrice;
     }
 
-    public function setUnitPrice($unitPrice): void
+    public function setUnitPrice(null|string|int|float $unitPrice): void
     {
-        $this->unitPrice = $unitPrice;
+        $this->unitPrice = Util::toFloat($unitPrice);
     }
 
-    public function getTotalPrice()
+    public function getTotalPrice(): ?float
     {
         return $this->totalPrice;
     }
 
-    public function setTotalPrice($totalPrice): void
+    public function setTotalPrice(null|string|int|float $totalPrice): void
     {
-        $this->totalPrice = $totalPrice;
+        $this->totalPrice = Util::toFloat($totalPrice);
     }
 
-    public function getDiscount()
+    public function getDiscount(): ?float
     {
         return $this->discount;
     }
 
-    public function setDiscount($discount): void
+    public function setDiscount(null|string|int|float $discount): void
     {
-        $this->discount = $discount;
+        $this->discount = Util::toFloat($discount);
     }
 
-    public function getVatRate()
+    public function getVatRate(): ?float
     {
         return $this->vatRate;
     }
 
-    public function setVatRate($vatRate): void
+    public function setVatRate(null|string|int|float $vatRate): void
     {
-        $this->vatRate = $vatRate;
+        $this->vatRate = Util::toFloat($vatRate);
     }
 
-    public function getVat()
+    public function getVat(): ?float
     {
         return $this->vat;
     }
 
-    public function setVat($vat): void
+    public function setVat(null|string|int|float $vat): void
     {
-        $this->vat = $vat;
+        $this->vat = Util::toFloat($vat);
     }
 
-    public function getUrl()
+    public function getUrl(): ?string
     {
         return $this->url;
     }
 
-    public function setUrl($url): void
+    public function setUrl(?string $url): void
     {
         $this->url = $url;
     }
 
-    public function getImageUrl()
+    public function getImageUrl(): ?string
     {
         return $this->imageUrl;
     }
 
-    public function setImageUrl($imageUrl): void
+    public function setImageUrl(?string $imageUrl): void
     {
         $this->imageUrl = $imageUrl;
     }
 
-    public function getBrand()
+    public function getBrand(): ?string
     {
         return $this->brand;
     }
 
-    public function setBrand($brand): void
+    public function setBrand(?string $brand): void
     {
         $this->brand = $brand;
     }
-
 }
