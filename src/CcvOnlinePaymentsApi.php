@@ -191,6 +191,15 @@ class CcvOnlinePaymentsApi {
 
     public function isKeyValid(): bool
     {
+        if($this->apiKey !== null && str_starts_with($this->apiKey, "HTTP_ERROR_")) {
+            $errorCode = intval(str_replace("HTTP_ERROR_", "", $this->apiKey));
+            if($errorCode === 401) {
+                return false;
+            }
+
+            $this->throwApiException("Debugging http error", $errorCode);
+        }
+
         try {
             $this->getMethods();
         }catch(InvalidApiKeyException $invalidApiKeyException) {
@@ -244,7 +253,7 @@ class CcvOnlinePaymentsApi {
             "shippingEmail"             => $request->getShippingEmail(),
             "shippingFirstName"         => $request->getShippingFirstName(),
             "shippingLastName"          => $request->getShippingLastName(),
-            "transactionType"           => $request->getTransactionType()->value,
+            "transactionType"           => $request->getTransactionType()?->value,
             "accountInfo" => [
                 "accountIdentifier"     =>  $request->getAccountInfoAccountIdentifier(),
                 "accountCreationDate"   =>  $request->getAccountInfoAccountCreationDate(),
@@ -513,12 +522,22 @@ class CcvOnlinePaymentsApi {
             $this->logger->error("CCV Online Payments api request error", $loggingContext);
         }
 
+        $this->throwApiException($curl->rawResponse, $statusCode);
+
+        return $response;
+    }
+
+    private function throwApiException(string $rawResponse, int $statusCode): void {
         if($statusCode >= 200 && $statusCode < 300) {
-            return $response;
+            return;
         }elseif($statusCode == 401) {
-            throw new InvalidApiKeyException($curl->rawResponse);
+            $exception = new InvalidApiKeyException($rawResponse);
+            $exception->setHttpStatusCode($statusCode);
+            throw $exception;
         }else{
-            throw new ApiException($curl->rawResponse);
+            $exception = new ApiException($rawResponse);
+            $exception->setHttpStatusCode($statusCode);
+            throw $exception;
         }
     }
 }
